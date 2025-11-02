@@ -1,0 +1,238 @@
+
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Over 2.5 — Quick Analyzer</title>
+<style>
+:root{--accent:#c81e2c}
+body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:18px;background:#f3f4f6;color:#0f172a}
+.container{max-width:980px;margin:0 auto;background:#fff;padding:18px;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,23,0.06)}
+header{display:flex;gap:12px;align-items:center}
+.app-icon{width:56px;height:56px;border-radius:8px}
+h1{margin:0;font-size:20px}
+.subtitle{color:#475569;font-size:13px;margin-top:2px}
+.form .row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.form input,.form textarea, .form select{flex:1;min-width:120px;padding:8px;border:1px solid #e6e6e6;border-radius:6px}
+.form textarea{min-height:60px}
+.btn{padding:8px 12px;border-radius:6px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+.btn.secondary{background:#fff;border:1px solid #cbd5e1;color:#111}
+.list .match{display:flex;align-items:center;justify-content:space-between;padding:10px;border:1px solid #eef2f7;border-radius:8px;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.badge{padding:6px 10px;border-radius:999px;font-weight:600;display:inline-block}
+.badge.high{background:#dcfce7;color:#14532d}
+.badge.mid{background:#fffbeb;color:#92400e}
+.badge.low{background:#fee2e2;color:#991b1b}
+.meta{display:flex;gap:12px;align-items:center;flex:1;min-width:200px}
+.coef{font-size:13px;color:#64748b}
+.footer{font-size:12px;color:#94a3b8;margin-top:12px}
+.small{font-size:13px;color:#475569}
+.controls{display:flex;gap:8px;flex-wrap:wrap}
+.icon{width:56px;height:56px;border-radius:8px;background:linear-gradient(180deg,#c81e2c,#a71b23);display:inline-flex;align-items:center;justify-content:center;color:white;font-weight:700;box-shadow:0 4px 10px rgba(0,0,0,0.1)}
+.column{display:flex;flex-direction:column;gap:6px}
+.label{font-size:12px;color:#475569}
+.note{font-size:12px;color:#6b7280}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.search{padding:8px;border:1px solid #e6e6e6;border-radius:6px;min-width:160px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="topbar">
+    <div style="display:flex;gap:12px;align-items:center">
+      <div class="icon">O2.5</div>
+      <div>
+        <h1>Over 2.5 — Quick Analyzer</h1>
+        <div class="subtitle">Бърз анализатор за мачове (работи офлайн в браузъра)</div>
+      </div>
+    </div>
+    <div class="small">Данните се запазват локално в браузъра (localStorage).</div>
+  </div>
+
+  <section class="form">
+    <div class="row">
+      <input id="date" placeholder="Дата (напр. 03.11.2025)"/>
+      <input id="home" placeholder="Домакин"/>
+      <input id="away" placeholder="Гост"/>
+    </div>
+
+    <div class="row">
+      <input id="avgHome" placeholder="Средно голове домакин (напр. 1.4)"/>
+      <input id="avgAway" placeholder="Средно голове гост (напр. 1.3)"/>
+      <input id="pctOverHome" placeholder="% над 2.5 (домакин) (напр. 65)"/>
+      <input id="pctOverAway" placeholder="% над 2.5 (гост) (напр. 60)"/>
+    </div>
+
+    <div class="row">
+      <input id="xgHome" placeholder="xG домакин (напр. 1.3)"/>
+      <input id="xgAway" placeholder="xG гост (напр. 1.1)"/>
+      <input id="last5Home" placeholder="Последни 5 (домакин) - брой 3+ (0-5)"/>
+      <input id="last5Away" placeholder="Последни 5 (гост) - брой 3+ (0-5)"/>
+    </div>
+
+    <div class="row">
+      <label class="column"><span class="label">Ключови нападатели</span><select id="keyAttackers"><option value="1">Да</option><option value="0">Не</option></select></label>
+      <label class="column"><span class="label">Има контузени защитници</span><select id="injuredDefense"><option value="0">Не</option><option value="1">Да</option></select></label>
+      <label class="column"><span class="label">Лошо време</span><select id="badWeather"><option value="0">Не</option><option value="1">Да</option></select></label>
+      <input id="coefficient" placeholder="Коефициент (напр. 1.85)"/>
+    </div>
+
+    <div class="row">
+      <textarea id="notes" placeholder="Бележки" style="flex:1"></textarea>
+    </div>
+
+    <div class="row controls">
+      <button class="btn" id="addBtn">Добави към списъка</button>
+      <button class="btn secondary" id="clearBtn">Изчисти полетата</button>
+      <button class="btn secondary" id="clearSaved">Изчисти запазени</button>
+      <input id="filter" class="search" placeholder="Търси по отбор или дата"/>
+    </div>
+  </section>
+
+  <section style="margin-top:12px">
+    <h2>Списък с анализи</h2>
+    <div id="list"></div>
+    <div class="note" style="margin-top:8px">Съвет: Ако оценката е &ge;7 — добро попадение за наблюдение.</div>
+  </section>
+
+  <div class="footer">Бележка: Аналитичен инструмент — не е препоръка за залагане. Може да управляваш данните си, да ги редактираш и триеш.</div>
+</div>
+
+<script>
+// Simple app logic in vanilla JS
+function getMatches(){
+  try{
+    return JSON.parse(localStorage.getItem('over25_matches')||'[]');
+  }catch(e){ return []; }
+}
+function saveMatches(arr){ localStorage.setItem('over25_matches', JSON.stringify(arr)); }
+
+function scoreMatch(m){
+  const avgHome = parseFloat(m.avgHome)||0;
+  const avgAway = parseFloat(m.avgAway)||0;
+  const pctOverHome = parseFloat(m.pctOverHome)||0;
+  const pctOverAway = parseFloat(m.pctOverAway)||0;
+  const xgHome = parseFloat(m.xgHome)||0;
+  const xgAway = parseFloat(m.xgAway)||0;
+  const last5Home = parseInt(m.last5Home)||0;
+  const last5Away = parseInt(m.last5Away)||0;
+
+  let score = 0;
+  const avgScore = Math.min((avgHome+avgAway)/3,1)*20; score+=avgScore;
+  const pctAvg = (pctOverHome + pctOverAway)/2; score+=Math.min(pctAvg/100,1)*25;
+  const xgTotal = xgHome + xgAway; score+=Math.min(xgTotal/3,1)*15;
+  const last5Total = Math.min((last5Home + last5Away)/10,1)*15; score+=last5Total;
+  score += m.keyAttackers ? 10 : 0;
+  score += m.injuredDefense ? 10 : 0;
+  if(m.badWeather) score -= 5;
+  score = Math.max(0, Math.min(100, score));
+  const scaled = Math.round((score/100)*10*10)/10;
+  return { raw: score, scaled };
+}
+
+function renderList(filterText){
+  const list = document.getElementById('list');
+  list.innerHTML='';
+  const arr = getMatches();
+  const filtered = arr.filter(m=>{
+    if(!filterText) return true;
+    const t = filterText.toLowerCase();
+    return (m.home||'').toLowerCase().includes(t) || (m.away||'').toLowerCase().includes(t) || (m.date||'').toLowerCase().includes(t);
+  });
+  if(filtered.length===0){ list.innerHTML = '<div class="note">Няма запазени анализи.</div>'; return; }
+  filtered.forEach(m=>{
+    const score = scoreMatch(m).scaled;
+    let label='Ниска', cls='low';
+    if(score>=7){ label='Висока'; cls='high'; }
+    else if(score>=5){ label='Средна'; cls='mid'; }
+    const div = document.createElement('div'); div.className='match';
+    const meta = document.createElement('div'); meta.className='meta';
+    meta.innerHTML = '<div><strong>' + (m.date||'-') + ' — ' + (m.home||'') + ' vs ' + (m.away||'') + '</strong><div class="coef">' + (m.coefficient||'') + ' · ' + (m.notes||'') + '</div></div>';
+    const scoreBox = document.createElement('div'); scoreBox.innerHTML = '<div class="badge '+cls+'">' + label + '</div><div class="small" style="margin-left:8px">Оценка: ' + score + '/10</div>';
+    const actions = document.createElement('div'); actions.className='controls';
+    const editBtn = document.createElement('button'); editBtn.className='btn secondary'; editBtn.textContent='Редактирай'; editBtn.onclick = ()=>{ loadToEdit(m.id); };
+    const delBtn = document.createElement('button'); delBtn.className='btn secondary'; delBtn.textContent='Изтрий'; delBtn.onclick = ()=>{ removeMatch(m.id); };
+    actions.appendChild(editBtn); actions.appendChild(delBtn);
+    div.appendChild(meta); div.appendChild(scoreBox); div.appendChild(actions);
+    list.appendChild(div);
+  });
+}
+
+function addMatch(){
+  const m = {
+    id: Date.now().toString(),
+    date: document.getElementById('date').value.trim(),
+    home: document.getElementById('home').value.trim(),
+    away: document.getElementById('away').value.trim(),
+    avgHome: document.getElementById('avgHome').value.trim(),
+    avgAway: document.getElementById('avgAway').value.trim(),
+    pctOverHome: document.getElementById('pctOverHome').value.trim(),
+    pctOverAway: document.getElementById('pctOverAway').value.trim(),
+    xgHome: document.getElementById('xgHome').value.trim(),
+    xgAway: document.getElementById('xgAway').value.trim(),
+    last5Home: document.getElementById('last5Home').value.trim(),
+    last5Away: document.getElementById('last5Away').value.trim(),
+    keyAttackers: document.getElementById('keyAttackers').value==='1',
+    injuredDefense: document.getElementById('injuredDefense').value==='1',
+    badWeather: document.getElementById('badWeather').value==='1',
+    coefficient: document.getElementById('coefficient').value.trim(),
+    notes: document.getElementById('notes').value.trim()
+  };
+  const arr = getMatches();
+  arr.unshift(m);
+  saveMatches(arr);
+  clearForm();
+  renderList(document.getElementById('filter').value.trim());
+  alert('Анализът е записан.');
+}
+
+function clearForm(){
+  ['date','home','away','avgHome','avgAway','pctOverHome','pctOverAway','xgHome','xgAway','last5Home','last5Away','coefficient','notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('keyAttackers').value='1';
+  document.getElementById('injuredDefense').value='0';
+  document.getElementById('badWeather').value='0';
+}
+
+function removeMatch(id){
+  if(!confirm('Сигурен ли си, че искаш да изтриеш този анализ?')) return;
+  const arr = getMatches().filter(m=>m.id!==id);
+  saveMatches(arr);
+  renderList(document.getElementById('filter').value.trim());
+}
+
+function loadToEdit(id){
+  const arr = getMatches();
+  const m = arr.find(x=>x.id===id);
+  if(!m) return;
+  document.getElementById('date').value = m.date||'';
+  document.getElementById('home').value = m.home||'';
+  document.getElementById('away').value = m.away||'';
+  document.getElementById('avgHome').value = m.avgHome||'';
+  document.getElementById('avgAway').value = m.avgAway||'';
+  document.getElementById('pctOverHome').value = m.pctOverHome||'';
+  document.getElementById('pctOverAway').value = m.pctOverAway||'';
+  document.getElementById('xgHome').value = m.xgHome||'';
+  document.getElementById('xgAway').value = m.xgAway||'';
+  document.getElementById('last5Home').value = m.last5Home||'';
+  document.getElementById('last5Away').value = m.last5Away||'';
+  document.getElementById('keyAttackers').value = m.keyAttackers? '1':'0';
+  document.getElementById('injuredDefense').value = m.injuredDefense? '1':'0';
+  document.getElementById('badWeather').value = m.badWeather? '1':'0';
+  document.getElementById('coefficient').value = m.coefficient||'';
+  document.getElementById('notes').value = m.notes||'';
+  // remove old entry so that on save it becomes newest
+  const newArr = arr.filter(x=>x.id!==id);
+  saveMatches(newArr);
+  renderList(document.getElementById('filter').value.trim());
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('addBtn').addEventListener('click', addMatch);
+document.getElementById('clearBtn').addEventListener('click', clearForm);
+document.getElementById('clearSaved').addEventListener('click', ()=>{ if(confirm('Изчистване на всички запазени анализи?')){ saveMatches([]); renderList(''); }});
+document.getElementById('filter').addEventListener('input', (e)=> renderList(e.target.value.trim()));
+
+renderList('');
+</script>
+</body>
+</html>
